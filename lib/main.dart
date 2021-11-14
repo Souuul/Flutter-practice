@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_project/data/util.dart';
+import 'package:to_do_project/write.dart';
 import 'data/todo.dart';
 
 
@@ -64,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
       title: '패스트캠퍼스 강의듣기2',
       memo: '앱개발 입문강의 듣기2',
       color: Colors.blue.value,
-      done: 0,
+      done: 1,
       category: '공부',
       date: 20210709,
     ),
@@ -93,6 +95,22 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: PreferredSize(child: AppBar(),
         preferredSize: Size.fromHeight(0),
       ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add, color: Colors.white,),
+        onPressed: () async {
+          Todo todo = await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => TodoWrightPage(todo: Todo(
+            title: '',
+            color: 0,
+            memo: '',
+            done: 0,
+            category: '',
+            date:utils.getFormatTime(DateTime.now())
+          ))));
+          setState(() {
+            todos.add(todo);
+          });
+        },
+      ),
       body: ListView.builder(
         itemBuilder: (ctx, idx){
           if(idx ==0) {
@@ -101,35 +119,74 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text('오늘하루', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
             );
           }else if(idx==1){
+
+            List<Todo> undone = todos.where((t){
+              return t.done == 0;
+            }).toList();
+
             return Container(
-              child: Column(
-                children: List.generate(todos.length, (_idx){
-                  Todo t = todos[_idx];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Color(t.color),
-                      borderRadius: BorderRadius.circular(16)
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children : [
-                            Text(t.title, style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),),
-                            Text(t.done == 0 ? '미완료' : "완료", style: TextStyle(color: Colors.white),),
-                          ],
-                        ),
-                        Container(height: 12,),
-                        Text(t.memo, style: TextStyle(color: Colors.white),)
-                      ],
-                    ),
-                  );
-                  
-                }),
-              )
+                child: Column(
+                  children: List.generate(undone.length, (_idx){
+                    Todo t = undone[_idx];
+
+                    return InkWell(child : TodoCardWidget(t: t),
+                      onTap: (){
+                      setState(() {
+                        if (t.done == 0){
+                          t.done = 1;
+                        }else{
+                          t.done = 0;
+                        }
+                      }
+                      );
+
+                      },
+                      onLongPress: () async{
+                        Todo todo = await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => TodoWrightPage(todo: t
+                        )));
+                        setState(() {
+                        });
+                      },
+                    );
+
+                  }),
+                )
+            );
+          }else if(idx ==2) {
+            return Container(
+              margin: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+              child: Text('완료된 하루', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+            );
+          }else if(idx==3){
+            List<Todo> done = todos.where((t){
+              return t.done == 1;
+            }).toList();
+            return Container(
+                child: Column(
+                  children: List.generate(done.length, (_idx){
+                    Todo t = done[_idx];
+                    return InkWell(child : TodoCardWidget(t: t),
+                      onTap: (){
+                        setState(() {
+                          if (t.done == 0){
+                            t.done = 1;
+                          }else{
+                            t.done = 0;
+                          }
+                        }
+                        );
+
+                      },
+                      onLongPress: () async{
+                        Todo todo = await Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => TodoWrightPage(todo: t
+                        )));
+                        setState(() {
+                        });
+                      },
+                    );
+
+                  }),
+                )
             );
           }
           return Container();
@@ -153,6 +210,39 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),// This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+
+class TodoCardWidget extends StatelessWidget {
+  final Todo t;
+
+  TodoCardWidget({Key? key, required this.t}): super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+          color: Color(t.color),
+          borderRadius: BorderRadius.circular(16)
+      ),
+      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children : [
+              Text(t.title, style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),),
+              Text(t.done == 0 ? '미완료' : "완료", style: TextStyle(color: Colors.white),),
+            ],
+          ),
+          Container(height: 12,),
+          Text(t.memo, style: TextStyle(color: Colors.white),)
+        ],
+      ),
     );
   }
 }
